@@ -1,0 +1,30 @@
+# Sentinel Lite — cron jobs (EST timezone)
+# Install with:  crontab sentinel/crontab.txt
+# Verify with:   crontab -l
+#
+# NOTE: Set your cron timezone to EST first by adding this line to /etc/environment:
+#   TZ=America/New_York
+# OR prefix each job with: TZ=America/New_York
+
+# ── Deep scans (Mon–Fri only) ─────────────────────────────────────────────────
+# 08:30 pre-market deep scan
+30 8 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py deep >> logs/scan.log 2>&1
+
+# 09:45 post-open deep scan
+45 9 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py deep >> logs/scan.log 2>&1
+
+# 11:00 mid-morning deep scan
+0 11 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py deep >> logs/scan.log 2>&1
+
+# 14:00 afternoon deep scan
+0 14 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py deep >> logs/scan.log 2>&1
+
+# ── Portfolio monitor every 30 min during market hours (09:30–16:00) Mon–Fri ──
+0,30 9 * * 1-5   TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0,30 10 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0,30 11 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0,30 12 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0,30 13 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0,30 14 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0,30 15 * * 1-5  TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1
+0 16 * * 1-5     TZ=America/New_York cd /path/to/Nexus/sentinel && /usr/bin/python3 run_scan.py portfolio >> logs/portfolio.log 2>&1

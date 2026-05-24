@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel Lite — Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e;
+    --green: #3fb950; --red: #f85149; --yellow: #d29922; --blue: #58a6ff;
+    --strong-buy: #1a7f37; --buy: #1f6feb; --sell: #b62324; --hold: #6e7681;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  header h1 span { color: var(--blue); }
+  #last-refresh { font-size: 12px; color: var(--muted); }
+  #refresh-btn { background: var(--blue); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+  #refresh-btn:hover { opacity: .85; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+  /* Stats row */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .stat-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .stat-card .value { font-size: 28px; font-weight: 700; }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.red   { color: var(--red); }
+  .stat-card .value.blue  { color: var(--blue); }
+
+  /* Section headings */
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; }
+
+  /* Signal cards grid */
+  .signals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .signal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; overflow: hidden; transition: transform .15s; }
+  .signal-card:hover { transform: translateY(-2px); }
+  .signal-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .signal-card.STRONG-BUY::before { background: var(--green); }
+  .signal-card.BUY::before          { background: var(--blue); }
+  .signal-card.SELL::before         { background: var(--red); }
+  .signal-card.HOLD::before         { background: var(--hold); }
+
+  .sc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .sc-symbol { font-size: 18px; font-weight: 700; }
+  .sc-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+  .STRONG-BUY .sc-badge { background: var(--strong-buy); color: #fff; }
+  .BUY .sc-badge          { background: var(--buy);        color: #fff; }
+  .SELL .sc-badge         { background: var(--sell);        color: #fff; }
+  .HOLD .sc-badge         { background: var(--hold);        color: #fff; }
+
+  .conf-bar-wrap { margin-bottom: 10px; }
+  .conf-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; display: flex; justify-content: space-between; }
+  .conf-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+  .conf-fill.high   { background: var(--green); }
+  .conf-fill.medium { background: var(--yellow); }
+  .conf-fill.low    { background: var(--muted); }
+
+  .levels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .level { background: rgba(255,255,255,.04); border-radius: 6px; padding: 6px 8px; }
+  .level .lbl { font-size: 10px; color: var(--muted); }
+  .level .val { font-size: 13px; font-weight: 600; }
+  .entry .val { color: var(--text); }
+  .target .val { color: var(--green); }
+  .stop .val   { color: var(--red); }
+
+  .sc-reasoning { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 8px; line-height: 1.5; }
+
+  /* Portfolio table */
+  .table-wrap { overflow-x: auto; margin-bottom: 28px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; padding: 8px 12px; text-align: left; white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(48,54,61,.5); white-space: nowrap; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  .badge-open   { background: rgba(63,185,80,.15);  color: var(--green); border: 1px solid rgba(63,185,80,.3);  border-radius: 4px; padding: 2px 7px; font-size: 11px; }
+  .badge-closed { background: rgba(139,148,158,.1); color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 11px; }
+  .pos-pnl.pos { color: var(--green); font-weight: 600; }
+  .pos-pnl.neg { color: var(--red);   font-weight: 600; }
+
+  /* Empty state */
+  .empty { text-align: center; color: var(--muted); padding: 40px; }
+  .empty svg { margin-bottom: 8px; opacity: .4; }
+
+  /* Loading spinner */
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ Sentinel <span>Lite</span></h1>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span id="last-refresh">Not loaded</span>
+    <button id="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats row -->
+  <div class="stats" id="stats-row">
+    <div class="stat-card"><div class="label">Signals Today</div><div class="value blue" id="stat-signals">—</div></div>
+    <div class="stat-card"><div class="label">Strong Buys</div><div class="value green" id="stat-strong">—</div></div>
+    <div class="stat-card"><div class="label">Sells</div><div class="value red" id="stat-sells">—</div></div>
+    <div class="stat-card"><div class="label">Open Positions</div><div class="value blue" id="stat-positions">—</div></div>
+    <div class="stat-card"><div class="label">Portfolio P&L</div><div class="value" id="stat-pnl">—</div></div>
+    <div class="stat-card"><div class="label">Top Confidence</div><div class="value green" id="stat-top-conf">—</div></div>
+  </div>
+
+  <!-- Signals -->
+  <div class="section-title">Today's Signals</div>
+  <div class="signals-grid" id="signals-grid">
+    <div class="empty"><span class="spinner"></span> Loading signals...</div>
+  </div>
+
+  <!-- Portfolio -->
+  <div class="section-title">Portfolio — Open Positions</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Symbol</th><th>Status</th><th>Entry</th><th>Stop</th>
+          <th>Target</th><th>Qty</th><th>P&L %</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="portfolio-tbody">
+        <tr><td colspan="8" class="empty"><span class="spinner"></span> Loading portfolio...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const API = "http://localhost:5050";
+
+async function loadData() {
+  document.getElementById("refresh-btn").textContent = "Loading…";
+  try {
+    const [sigRes, portRes] = await Promise.all([
+      fetch(`${API}/signals`).then(r => r.json()),
+      fetch(`${API}/portfolio`).then(r => r.json()),
+    ]);
+    renderSignals(sigRes.signals || []);
+    renderPortfolio(portRes.positions || []);
+    updateStats(sigRes.signals || [], portRes);
+    document.getElementById("last-refresh").textContent =
+      "Last refresh: " + new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById("signals-grid").innerHTML =
+      `<div class="empty">⚠️ Cannot reach local API at ${API}<br><small>Run: python dashboard_api.py</small></div>`;
+    document.getElementById("portfolio-tbody").innerHTML =
+      `<tr><td colspan="8" class="empty">API offline</td></tr>`;
+  }
+  document.getElementById("refresh-btn").textContent = "↻ Refresh";
+}
+
+function renderSignals(signals) {
+  const grid = document.getElementById("signals-grid");
+  if (!signals.length) {
+    grid.innerHTML = '<div class="empty">No signals recorded today yet.</div>';
+    return;
+  }
+  grid.innerHTML = signals.map(s => {
+    const cls   = s.signal.replace(" ", "-");
+    const conf  = s.confidence || 0;
+    const fill  = conf >= 72 ? "high" : conf >= 50 ? "medium" : "low";
+    const rr    = s.entry && s.stop && s.target
+      ? (Math.abs(s.target - s.entry) / Math.abs(s.entry - s.stop)).toFixed(1)
+      : "—";
+    return `
+    <div class="signal-card ${cls}">
+      <div class="sc-header">
+        <span class="sc-symbol">${s.symbol}</span>
+        <span class="sc-badge">${s.signal}</span>
+      </div>
+      <div class="conf-bar-wrap">
+        <div class="conf-label"><span>Confidence</span><span>${conf}/100</span></div>
+        <div class="conf-bar"><div class="conf-fill ${fill}" style="width:${conf}%"></div></div>
+      </div>
+      <div class="levels">
+        <div class="level entry"><div class="lbl">Entry</div><div class="val">$${fmt(s.entry)}</div></div>
+        <div class="level target"><div class="lbl">Target</div><div class="val">$${fmt(s.target)}</div></div>
+        <div class="level stop"><div class="lbl">Stop</div><div class="val">$${fmt(s.stop)}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">R:R 1:${rr} · ${s.strategy || "—"}</div>
+      <div class="sc-reasoning">${s.reasoning || "—"}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderPortfolio(positions) {
+  const tbody = document.getElementById("portfolio-tbody");
+  if (!positions.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No open positions</td></tr>';
+    return;
+  }
+  tbody.innerHTML = positions.map(p => {
+    const pnl    = p.pnl_pct || 0;
+    const pnlCls = pnl >= 0 ? "pos" : "neg";
+    const status = p.status || "open";
+    return `<tr>
+      <td><b>${p.symbol}</b></td>
+      <td><span class="badge-${status}">${status}</span></td>
+      <td>$${fmt(p.entry)}</td>
+      <td style="color:var(--red)">$${fmt(p.stop)}</td>
+      <td style="color:var(--green)">$${fmt(p.target)}</td>
+      <td>${p.qty || "—"}</td>
+      <td class="pos-pnl ${pnlCls}">${pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}%</td>
+      <td style="color:var(--muted)">${p.date || "—"}</td>
+    </tr>`;
+  }).join("");
+}
+
+function updateStats(signals, portData) {
+  const strongBuys = signals.filter(s => s.signal === "STRONG BUY").length;
+  const sells      = signals.filter(s => s.signal === "SELL").length;
+  const positions  = portData.positions || [];
+  const topConf    = signals.length ? Math.max(...signals.map(s => s.confidence || 0)) : 0;
+  const totalPnl   = positions.reduce((a, p) => a + (p.pnl_pct || 0), 0);
+
+  document.getElementById("stat-signals").textContent   = signals.length;
+  document.getElementById("stat-strong").textContent    = strongBuys;
+  document.getElementById("stat-sells").textContent     = sells;
+  document.getElementById("stat-positions").textContent = positions.length;
+  const pnlEl = document.getElementById("stat-pnl");
+  pnlEl.textContent = (totalPnl >= 0 ? "+" : "") + totalPnl.toFixed(2) + "%";
+  pnlEl.className   = "value " + (totalPnl >= 0 ? "green" : "red");
+  document.getElementById("stat-top-conf").textContent  = topConf ? topConf + "/100" : "—";
+}
+
+function fmt(n) { return n != null ? Number(n).toFixed(2) : "—"; }
+
+// Auto-refresh every 5 minutes
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>

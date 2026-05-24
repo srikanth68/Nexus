@@ -1,0 +1,10 @@
+yfinance>=0.2.36
+requests>=2.31.0
+python-dotenv>=1.0.0
+notion-client>=2.2.1
+pandas>=2.1.0
+numpy>=1.26.0
+ta>=0.11.0
+schedule>=1.2.1
+pytz>=2024.1
+aiohttp>=3.9.0
