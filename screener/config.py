@@ -6,6 +6,9 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID", "")
 
+# Finnhub
+FINNHUB_TOKEN = os.getenv("FINNHUB_TOKEN", "")
+
 # ── Screening filters ────────────────────────────────────────────────────────
 MIN_PRICE          = 15.0
 MAX_PRICE          = 150.0
