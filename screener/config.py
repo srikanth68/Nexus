@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
+
+# Always load .env from same directory as this file, regardless of CWD
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 # Telegram
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

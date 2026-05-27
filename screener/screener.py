@@ -139,8 +139,9 @@ def _reasoning(d: dict, spy: dict) -> str:
 def run_screen() -> list[dict]:
     print("\n[SCREEN] Checking SPY market context...")
     spy = get_spy_context()
-    print(f"[SCREEN] SPY: ${spy.get('price','?'):.2f}  "
-          f"VWAP ${spy.get('vwap','?'):.2f}  "
+    spy_price = f"${spy['price']:.2f}" if "price" in spy else "n/a"
+    spy_vwap  = f"${spy['vwap']:.2f}"  if "vwap"  in spy else "n/a"
+    print(f"[SCREEN] SPY: {spy_price}  VWAP {spy_vwap}  "
           f"above={'YES' if spy.get('above_vwap') else 'NO'}  "
           f"trending={'UP' if spy.get('trending_up') else 'DOWN'}")
 
