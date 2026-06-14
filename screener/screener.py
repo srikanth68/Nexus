@@ -8,7 +8,7 @@ from config import (
     MAX_BETA, MAX_STOP_DISTANCE, MIN_RISK_REWARD,
     RSI_LOW, RSI_HIGH, VOLUME_SPIKE, MAX_GAP_UP_PCT, UNIVERSE
 )
-from data import get_stock_data, get_spy_context
+from data import get_stock_data, get_spy_context, load_all_data
 
 
 def _check(symbol: str, d: dict, spy: dict) -> dict | None:
@@ -137,8 +137,11 @@ def _reasoning(d: dict, spy: dict) -> str:
 
 
 def run_screen() -> list[dict]:
+    # ── Batch fetch: 2 API calls cover all symbols ─────────────────────────────
+    quotes, series = load_all_data(UNIVERSE)
+
     print("\n[SCREEN] Checking SPY market context...")
-    spy = get_spy_context()
+    spy = get_spy_context(quotes.get("SPY", {}), series.get("SPY", []))
     spy_price = f"${spy['price']:.2f}" if "price" in spy else "n/a"
     spy_vwap  = f"${spy['vwap']:.2f}"  if "vwap"  in spy else "n/a"
     print(f"[SCREEN] SPY: {spy_price}  VWAP {spy_vwap}  "
@@ -149,7 +152,7 @@ def run_screen() -> list[dict]:
 
     signals = []
     for sym in UNIVERSE:
-        d = get_stock_data(sym)
+        d = get_stock_data(sym, quotes.get(sym, {}), series.get(sym, []))
         if d is None:
             print(f"[SCREEN] {sym}: no data")
             continue

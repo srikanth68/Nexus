@@ -8,8 +8,11 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID", "")
 
-# Finnhub
+# Finnhub (earnings calendar only — free endpoint)
 FINNHUB_TOKEN = os.getenv("FINNHUB_TOKEN", "")
+
+# Twelve Data (quotes + history)
+TWELVE_DATA_KEY = os.getenv("TWELVE_DATA_KEY", "")
 
 # ── Screening filters ────────────────────────────────────────────────────────
 MIN_PRICE          = 15.0
